@@ -135,9 +135,7 @@ class DevEditableWheel(editable_wheel):
         for old in LIB_DIR.glob('libpixpat.so*'):
             old.unlink()
         # Relative path so the symlink survives moves of the source tree.
-        (LIB_DIR / 'libpixpat.so').symlink_to(
-            Path('..') / '..' / '..' / 'build' / 'libpixpat.so'
-        )
+        (LIB_DIR / 'libpixpat.so').symlink_to(Path('..') / '..' / '..' / 'build' / 'libpixpat.so')
 
         super().run()
 
