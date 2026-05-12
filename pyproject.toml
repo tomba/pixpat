@@ -8,7 +8,7 @@ name = "pixpat"
 # revisit if it ever drifts in practice).
 version = "1.0.0"
 description = "Pixel format conversion and test pattern generation"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 authors = [{name = "Tomi Valkeinen", email = "tomi.valkeinen@ideasonboard.com"}]
 
 [tool.setuptools]
