@@ -8,6 +8,8 @@ project('pixpat', 'cpp',
         'b_ndebug=if-release',
     ],
     version : '1.0.0',
+    # 1.1 for meson.options support.
+    meson_version : '>= 1.1',
 )
 
 python3 = find_program('python3')
