@@ -21,7 +21,7 @@ dependencies = []
 
 [project.optional-dependencies]
 test = ["pytest", "numpy"]
-scripts = ["numpy", "pixutils"]
+scripts = ["numpy", "pixutils @ git+https://github.com/tomba/pixutils"]
 dev = ["pixpat[test,scripts]", "ruff"]
 
 [tool.setuptools]
