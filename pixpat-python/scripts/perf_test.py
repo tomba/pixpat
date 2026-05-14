@@ -43,7 +43,7 @@ import pixpat
 from pixutils.formats import PixelFormat, PixelFormats
 
 
-PATTERNS = ['kmstest', 'smpte', 'plain']
+PATTERNS = ['kmstest', 'smpte', 'plain', 'vbar', 'hbar']
 
 PATTERN_SINK_FMTS = [
     'XRGB8888',
@@ -272,8 +272,13 @@ def _bind(
         fn = pixpat.draw_pattern
         dst = case.dst
         pat = case.name.partition(' -> ')[0]
-        # `plain` needs an explicit color; the rest ignore params.
-        params = {'color': 'ff0000'} if pat == 'plain' else None
+        # `plain` needs a color; `vbar`/`hbar` need a bar position.
+        if pat == 'plain':
+            params = {'color': 'ff0000'}
+        elif pat in ('vbar', 'hbar'):
+            params = {'pos': '100'}
+        else:
+            params = None
         return lambda: fn(
             dst,
             pat,
