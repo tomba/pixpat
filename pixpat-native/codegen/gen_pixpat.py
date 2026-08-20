@@ -25,7 +25,8 @@ import sys
 from pathlib import Path
 
 try:
-    import tomllib
+    # tomllib is stdlib since 3.11; on 3.10 fall back to the tomli backport.
+    import tomllib  # pyright: ignore[reportMissingImports]
 except ModuleNotFoundError:
     import tomli as tomllib
 
