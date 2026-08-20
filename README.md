@@ -232,6 +232,12 @@ directory and nothing is cached between runs, so repeated builds are
 reproducible. Only the repo-root `build/` of the editable workflow below
 is persistent.
 
+The wheel is tagged `linux_<arch>`, not `manylinux`, so the `.so`
+carries whatever glibc symbol versions your cross toolchain emits. If
+the target's glibc is older, the wheel installs but fails to load —
+check with `readelf -V` before deploying. The `.so` also links
+`libstdc++.so.6`, which must be present on the target.
+
 ### Editable Python install for development
 
 ```sh
