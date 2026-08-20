@@ -124,10 +124,9 @@ import pixpat
 
 w, h = 1920, 1080
 data = bytearray(w * h * 4)
-buf = pixpat.Buffer(planes=[data], fmt="XRGB8888",
-                    width=w, height=h, strides=[w * 4])
+buf = pixpat.Buffer(planes=[data], fmt='XRGB8888', width=w, height=h, strides=[w * 4])
 
-pixpat.draw_pattern(buf, "smpte")
+pixpat.draw_pattern(buf, 'smpte')
 ```
 
 The Python `Buffer` accepts anything that supports the buffer protocol
