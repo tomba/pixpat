@@ -16,10 +16,11 @@ generation**, with a C API and Python bindings.
   and range) cost the same as same-color-kind ones, precision is
   preserved when both endpoints are 8-bit, and the work scales as N+M
   instead of N×M.
-- **Built to drop into pipelines.** Caller-owned buffers and a
-  freestanding C++ core (`-fno-exceptions -fno-rtti`, no libstdc++
-  runtime dep) mean pixpat fits inside the inner loop of a DRM/KMS,
-  V4L2, or GPU-upload path without copies or runtime baggage.
+- **Built to drop into pipelines.** Caller-owned buffers and a small
+  C ABI mean pixpat fits inside the inner loop of a DRM/KMS, V4L2, or
+  GPU-upload path without copies. Exceptions are used internally but
+  never cross the C ABI. Beyond libc, the only runtime dependency is
+  `libstdc++`.
 
 ## Why not pixpat
 
