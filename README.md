@@ -206,10 +206,10 @@ For a native install:
 pip install .
 ```
 
-`setup.py` invokes meson during the wheel build (into
-`pixpat-python/build/native/`), copies the resulting `.so` into the
-package, and stamps the wheel for the host architecture. Requires
-`meson`, `ninja`, and a C++ compiler on the host.
+`setup.py` invokes meson during the wheel build (into a temporary
+directory), copies the resulting `.so` into the package, and stamps the
+wheel for the host architecture. Requires `meson`, `ninja`, and a C++
+compiler on the host.
 
 To cross-compile a wheel for another architecture, use the helper:
 
@@ -218,8 +218,10 @@ pixpat-python/scripts/build_wheel.sh x86_64    # or aarch64
 ```
 
 The resulting wheel lands in `dist/`, tagged for the chosen
-architecture; meson's per-arch build dir lands at
-`pixpat-python/build-<arch>/native/`.
+architecture. Wheel builds are always clean: meson runs in a temporary
+directory and nothing is cached between runs, so repeated builds are
+reproducible. Only the repo-root `build/` of the editable workflow below
+is persistent.
 
 ### Editable Python install for development
 
