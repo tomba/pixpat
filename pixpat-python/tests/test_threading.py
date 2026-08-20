@@ -8,10 +8,8 @@ These tests parametrize across one format per writer template so that
 every code path in the dispatcher is covered.
 """
 
-import pytest
-
 import pixpat
-
+import pytest
 
 # Width must be divisible by 3 (T430/XYYY2101010 pack 3-per-32-bit), 4
 # (Bayer 10P packs 4 pixels per group), and 2 (h_sub).

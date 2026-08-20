@@ -34,14 +34,12 @@ import gc
 import math
 import sys
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable, Optional
 
 import numpy as np
-
 import pixpat
 from pixutils.formats import PixelFormat, PixelFormats
-
 
 PATTERNS = ['kmstest', 'smpte', 'plain', 'vbar', 'hbar']
 
@@ -156,7 +154,7 @@ def _required_align(pf: PixelFormat) -> tuple[int, int]:
     return w_align, h_align
 
 
-def _alloc_buffer(fmt_name: str, w: int, h: int) -> Optional[tuple[pixpat.Buffer, np.ndarray]]:
+def _alloc_buffer(fmt_name: str, w: int, h: int) -> tuple[pixpat.Buffer, np.ndarray] | None:
     """Build a pixpat.Buffer + its 1-D backing array, or None when the
     resolution doesn't fit the format's alignment."""
     pf = _PF_BY_NAME[fmt_name]
@@ -183,8 +181,8 @@ class Case:
     name: str
     kind: str  # 'pattern' or 'convert'
     dst: pixpat.Buffer
-    src: Optional[pixpat.Buffer] = None
-    src_arr: Optional[np.ndarray] = None  # 1-D backing for random fill
+    src: pixpat.Buffer | None = None
+    src_arr: np.ndarray | None = None  # 1-D backing for random fill
 
 
 def _build_cases(w: int, h: int, kinds: set[str]) -> list[Case]:
@@ -220,7 +218,7 @@ def _build_cases(w: int, h: int, kinds: set[str]) -> list[Case]:
     return cases
 
 
-def _parse_filter(s: Optional[str]) -> Optional[set[str]]:
+def _parse_filter(s: str | None) -> set[str] | None:
     if s is None:
         return None
     return {x.strip().upper() for x in s.split(',') if x.strip()}
@@ -232,15 +230,15 @@ def _norm_case(name: str) -> str:
 
 def _filter_cases(
     cases: list[Case],
-    only: Optional[str],
-    ionly: Optional[str],
-    oonly: Optional[str],
-    cases_filter: Optional[str],
+    only: str | None,
+    ionly: str | None,
+    oonly: str | None,
+    cases_filter: str | None,
 ) -> list[Case]:
     only_set = _parse_filter(only)
     ionly_set = _parse_filter(ionly)
     oonly_set = _parse_filter(oonly)
-    cases_set: Optional[set[str]] = None
+    cases_set: set[str] | None = None
     if cases_filter is not None:
         cases_set = {_norm_case(x) for x in cases_filter.split(',') if x.strip()}
     if only_set is None and ionly_set is None and oonly_set is None and cases_set is None:
@@ -265,8 +263,8 @@ def _filter_cases(
 def _bind(
     case: Case,
     num_threads: int,
-    rec: 'pixpat.Rec',
-    color_range: 'pixpat.Range',
+    rec: pixpat.Rec,
+    color_range: pixpat.Range,
 ) -> Callable[[], object]:
     if case.kind == 'pattern':
         fn = pixpat.draw_pattern
@@ -300,8 +298,7 @@ def _time_n(fn: Callable[[], object], iters: int) -> float:
         t0 = time.perf_counter_ns()
         fn()
         dt = time.perf_counter_ns() - t0
-        if dt < best:
-            best = dt
+        best = min(best, dt)
     return best * 1e-9
 
 

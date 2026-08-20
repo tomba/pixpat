@@ -15,7 +15,7 @@ unconditionally requires a writable buffer.
 import ctypes
 import os
 import pathlib
-from typing import Sequence
+from collections.abc import Sequence
 
 _PIXPAT_MAX_PLANES = 4
 
@@ -195,9 +195,9 @@ def _fill_buffer(
 
 __all__ = [
     '_Buffer',
-    '_PatternOpts',
     '_ConvertOpts',
+    '_PatternOpts',
     '_PinnedBuffers',
-    '_lib',
     '_fill_buffer',
+    '_lib',
 ]
