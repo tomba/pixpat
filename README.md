@@ -214,8 +214,17 @@ compiler on the host.
 To cross-compile a wheel for another architecture, use the helper:
 
 ```sh
-pixpat-python/scripts/build_wheel.sh x86_64    # or aarch64
+sudo apt install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+pixpat-python/scripts/build_wheel.sh aarch64    # or x86_64
 ```
+
+Beyond the cross toolchain this needs only `python3` and its `venv`
+module: the script bootstraps a build environment in
+`pixpat-python/build-venv/` and lets PEP 517 build isolation provision
+`setuptools`, `meson` and `ninja` from `pyproject.toml`. No `pip
+install` into your own environment is required, and the distro's
+`setuptools` is not used (`setup.py` needs >= 70.1, which is newer than
+some distros ship).
 
 The resulting wheel lands in `dist/`, tagged for the chosen
 architecture. Wheel builds are always clean: meson runs in a temporary
