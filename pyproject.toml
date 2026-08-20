@@ -12,7 +12,7 @@ build-backend = "setuptools.build_meta"
 name = "pixpat"
 # Keep version in sync with meson.build (single source of truth would be nice;
 # revisit if it ever drifts in practice).
-version = "1.0.0"
+version = "1.1.0"
 description = "Pixel format conversion and test pattern generation"
 requires-python = ">=3.10"
 authors = [{name = "Tomi Valkeinen", email = "tomi.valkeinen@ideasonboard.com"}]
