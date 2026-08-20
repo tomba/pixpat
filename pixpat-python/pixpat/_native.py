@@ -140,7 +140,9 @@ class _PinnedBuffers:
             view = self._views.pop()
             _PyBuffer_Release(ctypes.byref(view))
 
-    def __enter__(self) -> '_PinnedBuffers':
+    # typing.Self needs 3.11 and pixpat supports 3.10, so annotate with the
+    # class name. Private class, never subclassed, so this is accurate.
+    def __enter__(self) -> '_PinnedBuffers':  # noqa: PYI034
         return self
 
     def __exit__(self, exc_type, exc, tb) -> None:

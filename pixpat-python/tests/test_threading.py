@@ -90,7 +90,7 @@ def _alloc(fmt, w, h):
     if fmt.startswith('S'):
         return [bytearray(w * h * 2)], [w * 2]
     # 16-bit RGB
-    if fmt.endswith('565') or fmt.endswith('1555') or fmt.endswith('4444'):
+    if fmt.endswith(('565', '1555', '4444')):
         return [bytearray(w * h * 2)], [w * 2]
     # 32-bit RGB (8888 / 2101010 / 1010102 / 888 in 32-bit storage)
     return [bytearray(w * h * 4)], [w * 4]

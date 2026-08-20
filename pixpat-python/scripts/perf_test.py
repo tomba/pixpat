@@ -397,7 +397,7 @@ def main() -> int:
     name_w = max((len(c.name) for c in cases), default=20) + 2
 
     if args.tsv:
-        print('\t'.join(['case', 'pp_mps', 'pp_fps']))
+        print('case\tpp_mps\tpp_fps')
     else:
         print()
         header = f'{"case":<{name_w}} {"pp MP/s":>9} {"pp fps":>8}'

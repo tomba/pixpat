@@ -68,7 +68,6 @@ import ctypes
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from enum import IntEnum
-from typing import Optional, Union
 
 from ._native import (
     _Buffer,
