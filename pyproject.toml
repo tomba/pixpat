@@ -16,13 +16,11 @@ version = '1.1.0'
 description = 'Pixel format conversion and test pattern generation'
 requires-python = '>=3.10'
 authors = [{name = 'Tomi Valkeinen', email = 'tomi.valkeinen@ideasonboard.com'}]
-# The pixpat module talks to libpixpat via ctypes and uses only the stdlib.
 dependencies = []
 
 [project.optional-dependencies]
-test = ['pytest', 'numpy']
-scripts = ['numpy', 'pixutils @ git+https://github.com/tomba/pixutils']
-dev = ['pixpat[test,scripts]', 'ruff']
+dev = ['pytest', 'numpy', 'pixutils @ git+https://github.com/tomba/pixutils.git']
+all = ['pixpat[dev]']
 
 [tool.setuptools]
 package-dir = {'' = 'pixpat-python'}
