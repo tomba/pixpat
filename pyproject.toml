@@ -31,9 +31,21 @@ packages = ['pixpat']
 [tool.ruff]
 line-length = 100
 
+[tool.ruff.lint]
+extend-select = [
+  'E',   # pycodestyle errors
+  'W',   # pycodestyle warnings
+  'F',   # Pyflakes: undefined/unused names, bad imports, f-string mistakes
+  'FA',  # flake8-future-annotations: require `from __future__ import annotations`
+  'Q',   # flake8-quotes: quote style, configured under lint.flake8-quotes below
+  'UP',  # pyupgrade: rewrite idioms obsolete for our minimum Python
+  'PLE', # Pylint errors: things that are outright broken
+  'PLW', # Pylint warnings: suspicious but legal constructs
+]
+
 [tool.ruff.lint.flake8-quotes]
 inline-quotes = 'single'
-multiline-quotes = 'single'
+multiline-quotes = 'double' # only 'double' is compatible with the formatter
 
 [tool.ruff.format]
 quote-style = 'single'
