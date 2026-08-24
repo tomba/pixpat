@@ -247,7 +247,7 @@ meson compile -C build
 pip install -e .
 ```
 
-The editable install symlinks `build/libpixpat.so.0.0.0` into the
+The editable install symlinks `build/libpixpat.so` into the
 package, so rebuilding the native side is picked up without
 re-installing.
 

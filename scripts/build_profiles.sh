@@ -102,7 +102,7 @@ join_cases() {
 cases_arg=$(join_cases "${CASES[@]}")
 
 echo
-echo "=== libpixpat.so.0.0.0 sizes + pixpat MP/s (release, --iters 5 --warmup 2) ==="
+echo "=== libpixpat.so sizes + pixpat MP/s (release, --iters 5 --warmup 2) ==="
 printf "%-28s  %10s" "build-dir" "bytes"
 for lbl in "${LABELS[@]}"; do
 	printf "  %10s" "$lbl"
@@ -114,13 +114,15 @@ for comp in "${COMPILERS[@]}"; do
 	for entry in "${PROFILES[@]}"; do
 		name="${entry%%:*}"
 		dir="build-$cc_name-$name"
-		so="$dir/libpixpat.so.0.0.0"
+		# The unversioned symlink tracks whatever version meson built;
+		# -f follows it, and stat -L sizes the real file behind it.
+		so="$dir/libpixpat.so"
 		if [[ ! -f "$so" ]]; then
 			printf "%-28s  %10s\n" "$dir" "MISSING"
 			continue
 		fi
 
-		bytes=$(stat -c%s "$so")
+		bytes=$(stat -Lc%s "$so")
 		tsv=$(PIXPAT_LIB="$so" python3 "$PERF_TEST" \
 			--tsv --iters 5 --warmup 2 \
 			--cases "$cases_arg" 2>/dev/null || true)
