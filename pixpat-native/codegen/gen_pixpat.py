@@ -12,9 +12,8 @@ Outputs:
                      s_pattern_caps[] indexed by PatternId
 
 The convert dispatch (dispatch_dst_convert / dispatch_src_convert /
-dispatch_convert) and pattern dispatch (try_pattern / try_default
-arms) are hand-written and consume the capability arrays via
-`if constexpr`.
+dispatch_convert) and pattern dispatch (try_pattern arms) are
+hand-written and consume the capability arrays via `if constexpr`.
 
 A --query mode prints 0/1 to stdout for use from meson.
 """

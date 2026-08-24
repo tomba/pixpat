@@ -107,8 +107,8 @@ static void pack_from_norm(const pixpat_buffer* dst,
 	}
 }
 
-// Generated: s_format_caps[] indexed by FormatId, plus s_pattern_* /
-// DefaultPattern (used only by pixpat_pattern.cpp; harmless here).
+// Generated: s_format_caps[] indexed by FormatId, plus s_pattern_caps[]
+// (used only by pixpat_pattern.cpp; harmless here).
 #include "pixpat_caps.inc"
 
 static_assert(sizeof(s_format_caps) / sizeof(s_format_caps[0]) == s_format_catalog_count,
