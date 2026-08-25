@@ -13,7 +13,7 @@ from __future__ import annotations
 import argparse
 from dataclasses import dataclass
 
-from .formats import FORMATS
+from .formats import FAMILIES, FORMATS, family
 
 PATTERNS = (
     'kmstest',
@@ -148,6 +148,42 @@ class Case:
     @property
     def params(self) -> bytes | None:
         return PATTERN_PARAMS.get(self.src) if self.kind == 'pattern' else None
+
+
+def groups(case: Case) -> tuple[str, ...]:
+    """The groups a case is summarized under: its kind, and one per
+    side. A conversion is in the I/O family it reads (`src=semiplanar`)
+    and the one it writes (`dst=bayer-csi2`); a draw is in its pattern
+    (`pattern=smpte`) and the family it writes (`sink=bayer-csi2`).
+    The two kinds keep separate destination groups because the write
+    loop is a different share of each: the same sink regression is
+    0.2x on the conversions and 0.9x on the draws, and one group would
+    average them into nothing. The groups overlap on purpose — a case
+    is in one per axis — so a change to one family's loop shows on
+    that axis whatever is on the other side; they are for seeing which
+    loop moved, not for accounting."""
+    if case.kind == 'pattern':
+        return (case.kind, f'pattern={case.src}', f'sink={family(case.dst)}')
+    return (case.kind, f'src={family(case.src)}', f'dst={family(case.dst)}')
+
+
+_GROUP_ORDER = {
+    g: i
+    for i, g in enumerate(
+        ['convert', 'pattern']
+        + [f'src={f}' for f in FAMILIES]
+        + [f'dst={f}' for f in FAMILIES]
+        + [f'pattern={p}' for p in PATTERNS]
+        + [f'sink={f}' for f in FAMILIES]
+    )
+}
+
+
+def group_order(label: str) -> tuple:
+    """Kinds, then the conversion groups (sources, destinations), then
+    the draw groups (patterns, sinks), families in table order —
+    stable across runs."""
+    return (_GROUP_ORDER.get(label, len(_GROUP_ORDER)), label)
 
 
 def convert_case(src: str, dst: str) -> Case:

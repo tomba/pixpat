@@ -266,6 +266,127 @@ FORMATS = {
     'SGBRG12P': ('rgb', 1, 1, [_CSI2_12P_M]),
 }
 
+# The I/O family of a format: which Source/Sink template pair the
+# library instantiates for it (pixpat-native/src/formats/*.h picks one
+# per format, the templates live in src/io/), i.e. which read and
+# write loop a case runs. Transcribed like the table above, and checked
+# below to cover it exactly. PackedSource serves both packed RGB and
+# packed 4:4:4 YUV; they are split here because the color path between
+# them differs. The report groups cases by these, one group per side.
+FAMILIES: dict[str, tuple[str, tuple[str, ...]]] = {
+    # family: (io/ template, formats)
+    'rgb': (
+        'Packed',
+        (
+            'XRGB8888',
+            'ARGB8888',
+            'XBGR8888',
+            'ABGR8888',
+            'RGBX8888',
+            'RGBA8888',
+            'BGRX8888',
+            'BGRA8888',
+            'RGB888',
+            'BGR888',
+            'RGB332',
+            'RGB565',
+            'BGR565',
+            'XRGB1555',
+            'ARGB1555',
+            'XBGR1555',
+            'ABGR1555',
+            'XRGB4444',
+            'ARGB4444',
+            'XBGR4444',
+            'ABGR4444',
+            'RGBX4444',
+            'RGBA4444',
+            'XRGB2101010',
+            'ARGB2101010',
+            'XBGR2101010',
+            'ABGR2101010',
+            'RGBX1010102',
+            'RGBA1010102',
+            'BGRX1010102',
+            'BGRA1010102',
+            'XRGB16161616',
+            'XBGR16161616',
+            'ARGB16161616',
+            'ABGR16161616',
+        ),
+    ),
+    'yuv444': (
+        'Packed',
+        (
+            'VUY888',
+            'XVUY8888',
+            'XVUY2101010',
+            'AVUY16161616',
+            'XYUV8888',
+            'XVYU2101010',
+            'XVYU12_16161616',
+            'XVYU16161616',
+        ),
+    ),
+    'yuv422': ('PackedYUV', ('YUYV', 'YVYU', 'UYVY', 'VYUY', 'Y210', 'Y212', 'Y216')),
+    'semiplanar': ('Semiplanar', ('NV12', 'NV21', 'NV16', 'NV61', 'P010', 'P012', 'P016')),
+    'semiplanar-mp': ('MultiPixelSemiplanar', ('P030', 'P230')),
+    'planar': ('Planar', ('YUV420', 'YVU420', 'YUV422', 'YVU422', 'YUV444', 'YVU444')),
+    'planar-mp': ('MultiPixelPlanar', ('T430',)),
+    'gray': ('Gray', ('Y8', 'Y10', 'Y12', 'Y16')),
+    'gray-mp': ('MultiPixelGray', ('XYYY2101010',)),
+    'gray-csi2': ('GrayPacked', ('Y10P', 'Y12P')),
+    'mono-rgb': ('MonoRGB', ('R8',)),
+    'bayer': (
+        'Bayer',
+        (
+            'SRGGB8',
+            'SBGGR8',
+            'SGRBG8',
+            'SGBRG8',
+            'SRGGB10',
+            'SBGGR10',
+            'SGRBG10',
+            'SGBRG10',
+            'SRGGB12',
+            'SBGGR12',
+            'SGRBG12',
+            'SGBRG12',
+            'SRGGB16',
+            'SBGGR16',
+            'SGRBG16',
+            'SGBRG16',
+        ),
+    ),
+    'bayer-csi2': (
+        'BayerPacked',
+        (
+            'SRGGB10P',
+            'SBGGR10P',
+            'SGRBG10P',
+            'SGBRG10P',
+            'SRGGB12P',
+            'SBGGR12P',
+            'SGRBG12P',
+            'SGBRG12P',
+        ),
+    ),
+}
+
+FAMILY: dict[str, str] = {}
+for _fam, (_, _fmts) in FAMILIES.items():
+    for _fmt in _fmts:
+        if _fmt in FAMILY:
+            raise AssertionError(f'{_fmt} is in two families: {FAMILY[_fmt]}, {_fam}')
+        FAMILY[_fmt] = _fam
+if set(FAMILY) != set(FORMATS):
+    raise AssertionError(f'families and formats disagree: {sorted(set(FAMILY) ^ set(FORMATS))}')
+
+
+def family(fmt: str) -> str:
+    return FAMILY[fmt]
+
+
 # One format per I/O shape family; the fingerprint's depth pass sweeps
 # these over every size x spec x thread count.
 DEPTH = [

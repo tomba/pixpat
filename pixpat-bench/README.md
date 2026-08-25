@@ -34,7 +34,7 @@ scripts/pixbench perf [NAME=]LIB... [filters] [timing] [--save]
 scripts/pixbench measure --subject SPEC... [--lib [NAME=]LIB...] [--tree DIR | --commit REV] ...
 scripts/pixbench history REVS | --commits A,B | --last N  --subject SPEC... ...
 scripts/pixbench compare A B [--threshold 0.05] [--remeasure] [--verbose] [filters]
-scripts/pixbench report [--metric mpx_s|text_bytes|...] [--by subject|commit] [filters]
+scripts/pixbench report [--metric mpx_s|text_bytes|...] [--by subject|commit|group] [filters]
 scripts/pixbench export [--out FILE] [--csv]
 ```
 
@@ -91,6 +91,36 @@ and the median over all samples. `--cpu 6` (or `PIXBENCH_CPU=6`) pins
 the process; on a hybrid part pick a P-core, and pin to a set (`6-9`)
 when timing `--threads 4`. The pinning and the CPU model go into the
 run file; an unpinned run is recorded as such.
+
+### Groups
+
+One geomean over 186 cases says whether a build drifted and hides
+everything else: a 0.2x collapse on two cases and 1.7x on five others
+came out as 0.983x. So `compare` also prints a per-group table (cases,
+geomean, min, max) next to the overall number, and `report --by
+group` is the same cut as a matrix — one column per build, one row per
+group, the geomean of Mpx/s over the cases every column has, so the
+ratio of two cells is what `compare` would print for those builds.
+
+A case is summarized under its kind and one group per side. A
+conversion is in the family it reads (`src=semiplanar`) and the one
+it writes (`dst=bayer-csi2`); a draw is in its pattern
+(`pattern=smpte`) and the family it writes (`sink=bayer-csi2`) — a
+separate group from `dst=`, because the write loop is a different
+share of a draw and of a conversion and one group would average a
+0.2x sink regression on the conversions with 0.9x on the draws into
+nothing. The families are the library's
+own Source/Sink template pairs, transcribed in `formats.py`
+(`FAMILIES`): `rgb`, `yuv444`, `yuv422`, `semiplanar`,
+`semiplanar-mp`, `planar`, `planar-mp`, `gray`, `gray-mp`,
+`gray-csi2`, `mono-rgb`, `bayer`, `bayer-csi2`. Groups overlap on
+purpose — one per axis — so a change to one family's read or write
+loop shows on that axis whatever is on the other side. The curated
+list puts BGR888 on one side of most rows, so `src=rgb` and `dst=rgb`
+are large and everything else is small; the `cases` column says which
+is which, and groups with a single case are left to the per-case
+table. `export` carries `src_family` / `dst_family` on every
+throughput record.
 
 ## Workflows
 

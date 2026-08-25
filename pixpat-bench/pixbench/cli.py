@@ -603,7 +603,12 @@ def build_parser() -> argparse.ArgumentParser:
             'rodata_bytes',
         ),
     )
-    s.add_argument('--by', choices=('subject', 'commit'), default='subject')
+    s.add_argument(
+        '--by',
+        choices=('subject', 'commit', 'group'),
+        default='subject',
+        help='rows: cases per subject, commits, or case groups (geomean per group)',
+    )
     s.add_argument('--subjects', metavar='NAME,...')
     s.add_argument('revs', nargs='?', metavar='REVS', help='restrict to these commits')
     s.add_argument('--commits', metavar='REV,...')

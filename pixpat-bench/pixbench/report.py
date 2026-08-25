@@ -10,7 +10,8 @@ import pathlib
 from collections.abc import Sequence
 
 from . import fingerprint as fp
-from .cases import Filter, curated, parse_case
+from .cases import Filter, curated, group_order, groups, parse_case
+from .formats import family
 from .perf import record_key
 from .size import HEADLINE
 from .store import commit_of, short_commit, subject_label
@@ -104,6 +105,31 @@ def perf_of(run: dict, name: str) -> dict[tuple, dict]:
     return {record_key(r): r for r in run.get('perf', []) if r.get('subject') == name}
 
 
+# --- groups
+
+
+def group_rows(pairs: Sequence[tuple[str, float]], threshold: float) -> list[list]:
+    """Per-group geomean of (case name, B/A ratio) pairs: one row per
+    group with at least two cases — group, cases, geomean, min, max,
+    flag. Singletons are already visible in the per-case table."""
+    by: dict[str, list[float]] = {}
+    for case_name, ratio in pairs:
+        for g in groups(parse_case(case_name)):
+            by.setdefault(g, []).append(ratio)
+    rows = []
+    for g in sorted(by, key=group_order):
+        rs = by[g]
+        if len(rs) < 2:
+            continue
+        gm = geomean(rs)
+        flag = 'slower' if gm < 1 - threshold else 'faster' if gm > 1 + threshold else ''
+        rows.append([g, len(rs), f'{gm:.3f}x', f'{min(rs):.3f}x', f'{max(rs):.3f}x', flag])
+    return rows
+
+
+GROUP_HEADERS = ['group', 'cases', 'geomean', 'min', 'max', 'flag']
+
+
 # --- compare
 
 
@@ -182,6 +208,7 @@ def compare(
     uniform = len({k[1:] for k in keys}) <= 1
     rows = []
     ratios = []
+    pairs: list[tuple[str, float]] = []
     worse = better = 0
     for k in keys:
         ra, rb = pa[k], pb[k]
@@ -189,6 +216,7 @@ def compare(
         flag = ''
         if ratio is not None:
             ratios.append(ratio)
+            pairs.append((k[0], ratio))
             if ratio < 1 - threshold:
                 flag, worse = 'slower', worse + 1
             elif ratio > 1 + threshold:
@@ -208,6 +236,10 @@ def compare(
     if rows:
         cond_hdr = [] if uniform else ['conditions']
         out.append(render(['case', *cond_hdr, 'A Mpx/s', 'B Mpx/s', 'B/A', 'flag'], rows, fmt))
+        grouped = group_rows(pairs, threshold)
+        if len(grouped) > 1:
+            out.append('')
+            out.append(render(GROUP_HEADERS, grouped, fmt))
         gm = geomean(ratios)
         if uniform and keys:
             k = keys[0]
@@ -331,6 +363,31 @@ def report(
     def col_order(c: str) -> tuple:
         return (cases_order.get(c, len(cases_order)), c)
 
+    if by == 'group':
+        # Rows are groups, columns builds, a cell the geomean of the
+        # metric over the group's cases — restricted to the cases every
+        # column has, so that the ratio of two cells is the geomean of
+        # the per-case ratios compare would print for those two builds.
+        if metric in SIZE_METRICS:
+            raise CommandError('--by group is for throughput metrics')
+        cols = sorted({k[0] for k in data})
+        common = set.intersection(*[{k[1] for k in data if k[0] == c} for c in cols])
+        by_group: dict[str, dict[str, list[float]]] = {}
+        for (c, case_name), v in data.items():
+            if case_name in common:
+                for g in groups(parse_case(case_name)):
+                    by_group.setdefault(g, {}).setdefault(c, []).append(v['value'])
+        rows = []
+        for g in sorted(by_group, key=group_order):
+            n = len(by_group[g][cols[0]])
+            if n >= 2:
+                rows.append([g, n, *[_fmt(geomean(by_group[g][c])) for c in cols]])
+        text = render(['group', 'cases', *cols], rows, fmt)
+        dropped = len({k[1] for k in data}) - len(common)
+        if dropped:
+            text += f'\n({dropped} cases not measured for every column left out)'
+        return text
+
     if by == 'subject':
         cols = sorted({k[0] for k in data})
         rows_keys = sorted({k[1] for k in data}, key=col_order)
@@ -427,14 +484,21 @@ def flatten(runs: list[dict]) -> list[dict]:
             for r in run.get('perf', []):
                 if r.get('subject') == name:
                     fields = {k: v for k, v in r.items() if k not in ('subject', 'kind')}
-                    out.append({'kind': 'perf', **ctx, 'case_kind': r.get('kind'), **fields})
+                    case = parse_case(r['case'])
+                    fam = {
+                        'src_family': family(case.src) if case.kind == 'convert' else None,
+                        'dst_family': family(case.dst),
+                        'case_groups': list(groups(case)),
+                    }
+                    out.append({'kind': 'perf', **ctx, 'case_kind': r.get('kind'), **fields, **fam})
     return out
 
 
 PERF_CSV_COLUMNS = [
     'run_id', 'time', 'hostname', 'cpu_model', 'cpu_pinned', 'subject', 'lang', 'commit', 'dirty',
     'cc', 'cxx', 'profile', 'arch', 'lto', 'opt', 'buildtype', 'toolchain', 'lib_sha256',
-    'case', 'case_kind', 'w', 'h', 'threads', 'rec', 'range', 'iters', 'warmup', 'rounds',
+    'case', 'case_kind', 'src_family', 'dst_family',
+    'w', 'h', 'threads', 'rec', 'range', 'iters', 'warmup', 'rounds',
     'samples', 'min_ns', 'median_ns', 'mpx_s',
 ]  # fmt: skip
 
