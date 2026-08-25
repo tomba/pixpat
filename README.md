@@ -144,6 +144,11 @@ must be writable.
 - **`pixpat` (Python)** — thin `ctypes` bindings over the C ABI. No
   CPython extension, so a single wheel works on any CPython ≥ 3.9 for
   a given architecture.
+- **`pixbench`** — the measurement tooling in
+  [`pixpat-bench/`](pixpat-bench/README.md): builds the library from
+  any tree or commit, digests every output byte, records throughput
+  and size into JSON run files, and compares them across commits,
+  compilers and build options.
 
 ## Building
 
@@ -259,9 +264,10 @@ From the repo root, after an editable install:
 pytest pixpat-python/tests
 ```
 
-For micro-benchmarking the `draw_pattern` and `convert` paths across
-formats, see `pixpat-python/scripts/perf_test.py`. This is a
-development tool, not part of the supported API surface.
+For throughput, library size and bit-exactness measurements across
+builds, compilers and commits, see [`pixpat-bench/`](pixpat-bench/README.md)
+(`scripts/pixbench`). This is a development tool, not part of the
+supported API surface.
 
 ## Architecture
 
