@@ -14,6 +14,7 @@
 
 #include "../layout.h"
 #include "csi2.h"
+#include "detail.h"
 
 namespace pixpat
 {
@@ -30,7 +31,6 @@ struct GrayPackedSource {
 	using Traits = detail::csi2::packed_traits<BitDepth>;
 	static constexpr size_t ppg = Traits::ppg;
 	static constexpr size_t bpg = Traits::bpg;
-	static constexpr unsigned shift = 16 - BitDepth;
 
 	static YUV16 read(const Buffer<1>& buf, size_t x, size_t y,
 	                  [[maybe_unused]] size_t W,
@@ -40,7 +40,7 @@ struct GrayPackedSource {
 		                     + (x / ppg) * bpg;
 		const uint16_t val = detail::csi2::unpack_sample<BitDepth>(src, x % ppg);
 		return YUV16{
-		        uint16_t(val << shift),
+		        detail::decode_norm(BitDepth, val),
 		        0x8000, 0x8000, uint16_t(0),
 		};
 	}

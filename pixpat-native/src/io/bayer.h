@@ -202,16 +202,12 @@ struct BayerPackedSource {
 	static constexpr size_t ppg = Traits::ppg;
 	static constexpr size_t bpg = Traits::bpg;
 
-	// Stored N-bit value upshifts to normalized-16 by `<< (16-N)`,
-	// matching the unpacked Bayer source.
-	static constexpr unsigned shift = 16 - BitDepth;
-
 	static uint16_t read_sample(const Buffer<1>& buf, size_t x, size_t y) noexcept
 	{
 		const uint8_t* src = buf.data[0] + y * buf.stride[0]
 		                     + (x / ppg) * bpg;
 		const uint16_t val = detail::csi2::unpack_sample<BitDepth>(src, x % ppg);
-		return uint16_t(val << shift);
+		return detail::decode_norm(BitDepth, val);
 	}
 
 	static RGB16 read(const Buffer<1>& buf, size_t x, size_t y,

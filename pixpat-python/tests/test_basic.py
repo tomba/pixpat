@@ -460,6 +460,41 @@ def test_convert_csi2_packed_reference_bytes(packed, unpacked, packed_bytes, sam
     assert dst == packed_bytes * h
 
 
+@pytest.mark.parametrize(
+    'unpacked, packed',
+    [
+        ('SRGGB10', 'SRGGB10P'),
+        ('SRGGB12', 'SRGGB12P'),
+        ('Y10', 'Y10P'),
+        ('Y12', 'Y12P'),
+    ],
+)
+def test_convert_csi2_packed_reads_like_unpacked(unpacked, packed):
+    """A packed source must decode to the same pixels as the unpacked
+    format holding the same samples, in 8-bit and 16-bit outputs alike."""
+    w, h = 64, 32
+    src = bytearray(w * h * 2)
+    pixpat.draw_pattern(pixpat.Buffer([src], unpacked, w, h, [w * 2]), 'zoneplate')
+    pstride = w // 4 * 5 if packed.endswith('10P') else w // 2 * 3
+    psrc = bytearray(pstride * h)
+    pixpat.convert(
+        pixpat.Buffer([psrc], packed, w, h, [pstride]),
+        pixpat.Buffer([src], unpacked, w, h, [w * 2]),
+    )
+    for out, bpp in [('XRGB8888', 4), ('YUYV', 2), ('AVUY16161616', 8)]:
+        from_unpacked = bytearray(w * h * bpp)
+        from_packed = bytearray(w * h * bpp)
+        pixpat.convert(
+            pixpat.Buffer([from_unpacked], out, w, h, [w * bpp]),
+            pixpat.Buffer([src], unpacked, w, h, [w * 2]),
+        )
+        pixpat.convert(
+            pixpat.Buffer([from_packed], out, w, h, [w * bpp]),
+            pixpat.Buffer([psrc], packed, w, h, [pstride]),
+        )
+        assert from_unpacked == from_packed, out
+
+
 def test_convert_roundtrip_yuyv():
     """YUYV (packed 4:2:2) — chroma is averaged on write and replicated on
     read, so the second leg must not change the buffer."""
