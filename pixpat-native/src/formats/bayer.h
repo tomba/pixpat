@@ -13,7 +13,7 @@
 //
 // ColorKind is RGB because the normalized pixel passed through ColorXfm
 // is RGB16 — the sink picks one of r/g/b at write time, and the
-// source nearest-neighbor demosaics into RGB16 at read time.
+// source demosaics into RGB16 at read time (3x3 bilinear, io/bayer.h).
 
 #include "../layout.h"
 #include "../io/bayer.h"

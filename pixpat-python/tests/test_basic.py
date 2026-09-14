@@ -398,8 +398,8 @@ def test_convert_yuv420_src_three_planes():
 
 
 def test_convert_bayer_src():
-    """Bayer formats are supported as a convert source (decoded by
-    nearest-neighbor demosaic per the public header docstring)."""
+    """Bayer formats are supported as a convert source (decoded by a
+    3x3 bilinear demosaic per the public header docstring)."""
     w, h = 64, 32
     src = bytearray(w * h)
     pixpat.draw_pattern(pixpat.Buffer([src], 'SRGGB8', w, h, [w]), 'smpte')
