@@ -1,5 +1,7 @@
 """Smoke tests for the pixpat Python bindings."""
 
+import struct
+
 import pixpat
 import pytest
 
@@ -407,6 +409,55 @@ def test_convert_bayer_src():
         pixpat.Buffer([src], 'SRGGB8', w, h, [w]),
     )
     assert any(b != 0 for b in dst)
+
+
+# MIPI CSI-2 RAW10: 4 samples in 5 bytes. Bytes 0..3 carry bits 9:2 of
+# samples 0..3; byte 4 carries the two low bits of each sample, sample 0
+# in bits 1:0 up to sample 3 in bits 7:6. Byte 4 below is 0b11100100, so
+# the low bits are 0, 1, 2, 3 in sample order.
+CSI2_RAW10_BYTES = bytes([0x10, 0x20, 0x30, 0x40, 0xE4])
+CSI2_RAW10_SAMPLES = [0x040, 0x081, 0x0C2, 0x103]
+
+# MIPI CSI-2 RAW12: 2 samples in 3 bytes. Bytes 0..1 carry bits 11:4 of
+# samples 0..1; byte 2 carries the four low bits of each sample, sample 0
+# in bits 3:0 and sample 1 in bits 7:4.
+CSI2_RAW12_BYTES = bytes([0x10, 0x20, 0x21, 0x30, 0x40, 0x43])
+CSI2_RAW12_SAMPLES = [0x101, 0x202, 0x303, 0x404]
+
+
+@pytest.mark.parametrize(
+    'packed, unpacked, packed_bytes, samples',
+    [
+        ('SRGGB10P', 'SRGGB10', CSI2_RAW10_BYTES, CSI2_RAW10_SAMPLES),
+        ('SGBRG10P', 'SGBRG10', CSI2_RAW10_BYTES, CSI2_RAW10_SAMPLES),
+        ('Y10P', 'Y10', CSI2_RAW10_BYTES, CSI2_RAW10_SAMPLES),
+        ('SRGGB12P', 'SRGGB12', CSI2_RAW12_BYTES, CSI2_RAW12_SAMPLES),
+        ('SGBRG12P', 'SGBRG12', CSI2_RAW12_BYTES, CSI2_RAW12_SAMPLES),
+        ('Y12P', 'Y12', CSI2_RAW12_BYTES, CSI2_RAW12_SAMPLES),
+    ],
+)
+def test_convert_csi2_packed_reference_bytes(packed, unpacked, packed_bytes, samples):
+    """The CSI-2 packed formats must match the MIPI byte layout in both
+    directions, not only round-trip through pixpat. Two rows cover both
+    row parities of the Bayer sink."""
+    w, h = len(samples), 2
+    packed_stride = len(packed_bytes)
+    unpacked_stride = w * 2
+    unpacked_bytes = struct.pack(f'<{w}H', *samples)
+
+    dst = bytearray(unpacked_stride * h)
+    pixpat.convert(
+        pixpat.Buffer([dst], unpacked, w, h, [unpacked_stride]),
+        pixpat.Buffer([packed_bytes * h], packed, w, h, [packed_stride]),
+    )
+    assert dst == unpacked_bytes * h
+
+    dst = bytearray(packed_stride * h)
+    pixpat.convert(
+        pixpat.Buffer([dst], packed, w, h, [packed_stride]),
+        pixpat.Buffer([unpacked_bytes * h], unpacked, w, h, [unpacked_stride]),
+    )
+    assert dst == packed_bytes * h
 
 
 def test_convert_roundtrip_yuyv():
